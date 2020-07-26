@@ -1,0 +1,54 @@
+﻿<Window x:Class="WpfApp8_RandomDistribution.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="800" Width="800"
+        Background="#FF333333"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen">
+    <Grid HorizontalAlignment="Center"
+          VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Press F5 to refresh"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="White"
+                   FontSize="20"
+                   Margin="0,20" />
+
+        <Grid Grid.Row="1"
+              x:Name="Grid"
+              Width="100"
+              Height="100"
+              Background="Black"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+            <Grid.LayoutTransform>
+                <ScaleTransform ScaleX="5" ScaleY="-5" />
+            </Grid.LayoutTransform>
+            <Path Stroke="White"
+                  StrokeThickness="0.5"
+                  Data="M0,0 L100,100" />
+        </Grid>
+
+        <TextBlock Grid.Row="2"
+                   FontFamily="Consolas"
+                   x:Name="TextBlock"
+                   Margin="0,20"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   FontSize="18"
+                   LineHeight="19"
+                   LineStackingStrategy="BlockLineHeight"
+                   Foreground="White" />
+    </Grid>
+</Window>
