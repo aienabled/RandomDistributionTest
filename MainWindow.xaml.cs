@@ -61,10 +61,10 @@
             var result = new List<Vector2>();
 
             const double scale = 100;
-            const int bucketsCount = 50;
-            var max = listSamples.Max();
-            var min = listSamples.Min();
-            var bucketSize = (max - min) / (double)bucketsCount;
+            var bucketsCount = Math.Min(targetProbabilityReverse, 50);
+            double max = listSamples.Max();
+            double min = listSamples.Min();
+            double bucketSize = (max - min) / (double)bucketsCount;
 
             thresholdLineX = scale * targetProbabilityReverse / (max - min);
 
@@ -75,12 +75,13 @@
 
                 if (i == bucketsCount - 1)
                 {
-                    currentRangeTo = max + double.Epsilon;
+                    currentRangeTo = double.MaxValue;
                 }
 
-                var countInRange = listSamples.Count(v => v >= currentRangeFrom && v < currentRangeTo);
+                var countInRange = listSamples.Count(v => v >= currentRangeFrom
+                                                          && v < currentRangeTo);
 
-                var x = scale * (i / (double)bucketsCount);
+                var x = scale * (i / (double)(bucketsCount - 1));
                 var y = scale * countInRange / (double)listSamples.Count;
 
                 // normalize values
@@ -95,8 +96,8 @@
 
         private static Geometry CreateGeometryForData(Vector2[] dataPoints)
         {
-            var maxValue = double.MinValue;
-            var minValue = double.MaxValue;
+            var maxValue = 100.0; //double.MinValue;
+            var minValue = 0.0;   //double.MaxValue;
             foreach (var dataPoint in dataPoints)
             {
                 if (dataPoint.Y > maxValue)
@@ -150,12 +151,15 @@
                 var attempt = 1;
                 do
                 {
+                    //var p = targetProbabilityReverse;
+
                     // Probability compensation mechanism idea:
                     // the more attempts were made, the bigger threshold use.
-                    var localTargetProbabilityReverse = 2  * targetProbabilityReverse - (attempt - 1);
+                    var p = 2 * targetProbabilityReverse - attempt;
 
-                    var nextDouble = random.NextDouble();
-                    if (nextDouble <= 1 / localTargetProbabilityReverse)
+                    var rolledValue = random.NextDouble(); // roll random value in range from 0 to 1 (excluding 1)
+
+                    if (rolledValue <= 1 / p)
                     {
                         listSamples.Add(attempt);
                         break;
@@ -166,14 +170,19 @@
                 while (true);
             }
 
+            listSamples.Sort();
+
             var min = listSamples.Min();
             var max = listSamples.Max();
 
             var listAverage = listSamples.Sum() / listSamples.Count;
             var listMedian = CalcMedian(listSamples);
 
+            //var loosers = listSamples.Where(s => s < 50).Count();
+            //var winners = listSamples.Where(s => s > 3000).Count();
+
             var sb = new StringBuilder();
-            sb.AppendLine($"Target probability: 0/{targetProbabilityReverse:0.##} | Samples count: {SamplesCount}");
+            sb.AppendLine($"Target probability: 1/{targetProbabilityReverse:0.##} | Samples count: {SamplesCount}");
             sb.AppendLine(
                 string.Format("Random rolls necessary:"
                               + Environment.NewLine
@@ -188,20 +197,22 @@
                               listMedian));
             sb.AppendLine("----------------------------------------------------------");
 
-            var steps = 10;
-            var step = (max - min) / (double)steps;
+            var bucketsCount = 10;
+            var step = (max - min) / (double)bucketsCount;
 
-            for (var i = 0; i < steps; i++)
+            for (var i = 0; i < bucketsCount; i++)
             {
                 var currentRangeFrom = min + i * step;
                 var currentRangeTo = min + (i + 1) * step;
 
-                if (i == steps - 1)
+                var currentRangeToForCheck = currentRangeTo;
+                if (i == bucketsCount - 1)
                 {
-                    currentRangeTo = max + double.Epsilon;
+                    currentRangeToForCheck = double.MaxValue;
                 }
 
-                var countInRange = listSamples.Count(v => v >= currentRangeFrom && v < currentRangeTo);
+                var countInRange = listSamples.Count(v => v >= currentRangeFrom
+                                                          && v < currentRangeToForCheck);
 
                 var signsCount = (int)Math.Round(120 * (double)countInRange / SamplesCount);
 
@@ -252,7 +263,7 @@
 
         private void Start()
         {
-            // test for 1/1000th probability
+            // test for 1/Xth probability
             var targetProbabilityReverse = 1000;
 
             var dataPoints = CalculatePoints(out var text,
